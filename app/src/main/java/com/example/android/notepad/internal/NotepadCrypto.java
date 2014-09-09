@@ -29,24 +29,25 @@ public class NotepadCrypto {
 
     private final static int HASH_SIZE = 40;
     private final static String HEX = "0123456789ABCDEF";
+    private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
 
-    public static String stringEncrypt(byte[] iv, byte[] key, String data) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
+    public static String stringEncrypt(byte[] iv, byte[] key, String data, String salt) {
         String result = toHex(encrypt(iv, key, data.getBytes()));
-        return (toHex(generateHash(result)) + result);
+        return (toHex(generateHash(result, salt)) + result);
     }
 
-    public static String stringDecrypt(byte[] iv, byte[] key, String data) throws NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, UnsupportedEncodingException {
+    public static String stringDecrypt(byte[] iv, byte[] key, String data, String salt) {
         if (data.length() <= HASH_SIZE) {
             return null;
         }
         String text = data.substring(0, HASH_SIZE);
-        if(text.equals(toHex(generateHash(data.substring(HASH_SIZE))))) {
+        if(text.equals(toHex(generateHash(data.substring(HASH_SIZE), salt)))) {
             return new String(decrypt(iv, key, toByte(data.substring(HASH_SIZE))));
         }
         return null;
     }
 
-    public static String fileEncrypt(byte[] iv, byte[] key, String path) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    public static String fileEncrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -59,10 +60,10 @@ public class NotepadCrypto {
         while ((row = buffer.readLine()) != null) {
             data += row + "\n";
         }
-        return stringEncrypt(iv, key, data);
+        return stringEncrypt(iv, key, data, salt);
     }
 
-    public static String fileDecrypt(byte[] iv, byte[] key, String path) throws IOException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    public static String fileDecrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -75,7 +76,7 @@ public class NotepadCrypto {
         while ((row = buffer.readLine()) != null) {
             data += row + "\n";
         }
-        return stringDecrypt(iv, key, data);
+        return stringDecrypt(iv, key, data, salt);
     }
 
     public static byte[] generateIV() {
@@ -85,11 +86,17 @@ public class NotepadCrypto {
         return iv;
     }
 
-    public static byte[] generateRawKey(byte[] seed) throws NoSuchAlgorithmException {
-        KeyGenerator kgen = KeyGenerator.getInstance("AES");
-        SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");
+    public static byte[] generateRawKey(byte[] seed) {
+        KeyGenerator kgen = null;
+        SecureRandom sr = null;
+        try {
+            kgen = KeyGenerator.getInstance("AES");
+            sr = SecureRandom.getInstance("SHA1PRNG");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
         sr.setSeed(seed);
-        kgen.init(128, sr); // 192 and 256 bits may not be available
+        kgen.init(128, sr);
         SecretKey skey = kgen.generateKey();
         byte[] raw = skey.getEncoded();
         return raw;
@@ -109,7 +116,7 @@ public class NotepadCrypto {
         int len = hexString.length()/2;
         byte[] result = new byte[len];
         for (int i = 0; i < len; i++)
-            result[i] = Integer.valueOf(hexString.substring(2 * i, 2 * i + 2), 16).byteValue();
+            result[i] = Integer.valueOf(hexString.substring(2*i, 2*i+2), 16).byteValue();
         return result;
     }
 
@@ -117,30 +124,78 @@ public class NotepadCrypto {
         buf.append(HEX.charAt((ch >> 4) & 0x0f)).append(HEX.charAt(ch & 0x0f));
     }
 
-    public static byte[] generateHash(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(text.getBytes("iso-8859-1"), 0, text.length());
-        byte[] sha1hash = md.digest();
-        return sha1hash;
+    public static byte[] generateHash(String text, String salt) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update((text + salt).getBytes());
+        return md.digest();
     }
 
-    private static byte[] encrypt(byte[] iv, byte[] key, byte[] clear) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+    private static byte[] encrypt(byte[] iv, byte[] key, byte[] clear) {
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance(CIPHER_TO_USE);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
 
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-        byte[] encrypted = cipher.doFinal(clear);
+        byte[] encrypted = null;
+        if (cipher != null) {
+            try {
+                cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            }
+            try {
+                encrypted = cipher.doFinal(clear);
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+        }
         return encrypted;
     }
 
-    private static byte[] decrypt(byte[] iv, byte[] key, byte[] encrypted) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
+    private static byte[] decrypt(byte[] iv, byte[] key, byte[] encrypted) {
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        Cipher cipher = null;
+        try {
+            cipher = Cipher.getInstance(CIPHER_TO_USE);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
 
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-        byte[] decrypted = cipher.doFinal(encrypted);
+        byte[] decrypted = null;
+        if (cipher != null) {
+            try {
+                cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            }
+            try {
+                decrypted = cipher.doFinal(encrypted);
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+        }
         return decrypted;
     }
 }
