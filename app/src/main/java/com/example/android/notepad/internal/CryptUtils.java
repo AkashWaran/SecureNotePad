@@ -21,10 +21,9 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Created by Akash on 9/9/2014.
  */
-public class CryptUtils implements ICryptUtils {
+public class CryptUtils extends Utilities implements ICryptUtils {
 
     private final static int HASH_SIZE = 40;
-    private final static String HEX = "0123456789ABCDEF";
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
 
     public String stringEncrypt(byte[] iv, byte[] key, String data, String salt) {
@@ -75,28 +74,6 @@ public class CryptUtils implements ICryptUtils {
         return stringDecrypt(iv, key, data, salt);
     }
 
-    private static String toHex(byte[] buffer) {
-        if (buffer == null)
-            return "";
-        StringBuilder result = new StringBuilder(2 * buffer.length);
-        for (int i = 0; i < buffer.length; i++) {
-            appendHex(result, buffer[i]);
-        }
-        return result.toString();
-    }
-
-    private static byte[] toByte(String hexString) {
-        int len = hexString.length() / 2;
-        byte[] result = new byte[len];
-        for (int i = 0; i < len; i++)
-            result[i] = Integer.valueOf(hexString.substring(2 * i, 2 * i + 2), 16).byteValue();
-        return result;
-    }
-
-    private static void appendHex(StringBuilder buf, byte ch) {
-        buf.append(HEX.charAt((ch >> 4) & 0x0f)).append(HEX.charAt(ch & 0x0f));
-    }
-
     private static byte[] generateHash(String text, String salt) {
         MessageDigest md = null;
         try {
@@ -105,6 +82,17 @@ public class CryptUtils implements ICryptUtils {
             e.printStackTrace();
         }
         md.update((text + salt).getBytes());
+        return md.digest();
+    }
+
+    private static byte[] secureHash(byte[] data) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update(data);
         return md.digest();
     }
 

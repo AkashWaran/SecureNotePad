@@ -32,4 +32,14 @@ public interface IUtilities {
      * @return Random byte array
      */
     public byte[] generateRawKey(byte[] seed);
+
+    /**
+     *
+     * This method is used in order to delete sensitive data once used.
+     * We replace all data in the array with 0 so that after garbage collection
+     * we do not have sensitive data stored in memory which can be exploited.
+     *
+     * @param data - The data which is required to be erased securely
+     */
+    public void whiteoutBytes(byte[] data);
 }
