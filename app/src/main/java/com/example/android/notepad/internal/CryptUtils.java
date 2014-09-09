@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -23,31 +22,31 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Created by Akash on 9/5/2014.
+ * Created by Akash on 9/9/2014.
  */
-public class NotepadCrypto {
+public class CryptUtils implements ICryptUtils {
 
     private final static int HASH_SIZE = 40;
     private final static String HEX = "0123456789ABCDEF";
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
 
-    public static String stringEncrypt(byte[] iv, byte[] key, String data, String salt) {
+    public String stringEncrypt(byte[] iv, byte[] key, String data, String salt) {
         String result = toHex(encrypt(iv, key, data.getBytes()));
         return (toHex(generateHash(result, salt)) + result);
     }
 
-    public static String stringDecrypt(byte[] iv, byte[] key, String data, String salt) {
+    public String stringDecrypt(byte[] iv, byte[] key, String data, String salt) {
         if (data.length() <= HASH_SIZE) {
             return null;
         }
         String text = data.substring(0, HASH_SIZE);
-        if(text.equals(toHex(generateHash(data.substring(HASH_SIZE), salt)))) {
+        if (text.equals(toHex(generateHash(data.substring(HASH_SIZE), salt)))) {
             return new String(decrypt(iv, key, toByte(data.substring(HASH_SIZE))));
         }
         return null;
     }
 
-    public static String fileEncrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
+    public String fileEncrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -63,7 +62,7 @@ public class NotepadCrypto {
         return stringEncrypt(iv, key, data, salt);
     }
 
-    public static String fileDecrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
+    public String fileDecrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -79,33 +78,10 @@ public class NotepadCrypto {
         return stringDecrypt(iv, key, data, salt);
     }
 
-    public static byte[] generateRandom(int size) {
-        SecureRandom random = new SecureRandom();
-        byte iv[] = new byte[size];
-        random.nextBytes(iv);
-        return iv;
-    }
-
-    public static byte[] generateRawKey(byte[] seed) {
-        KeyGenerator kgen = null;
-        SecureRandom sr = null;
-        try {
-            kgen = KeyGenerator.getInstance("AES");
-            sr = SecureRandom.getInstance("SHA1PRNG");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        sr.setSeed(seed);
-        kgen.init(128, sr);
-        SecretKey skey = kgen.generateKey();
-        byte[] raw = skey.getEncoded();
-        return raw;
-    }
-
     private static String toHex(byte[] buffer) {
         if (buffer == null)
             return "";
-        StringBuilder result = new StringBuilder(2*buffer.length);
+        StringBuilder result = new StringBuilder(2 * buffer.length);
         for (int i = 0; i < buffer.length; i++) {
             appendHex(result, buffer[i]);
         }
@@ -113,10 +89,10 @@ public class NotepadCrypto {
     }
 
     private static byte[] toByte(String hexString) {
-        int len = hexString.length()/2;
+        int len = hexString.length() / 2;
         byte[] result = new byte[len];
         for (int i = 0; i < len; i++)
-            result[i] = Integer.valueOf(hexString.substring(2*i, 2*i+2), 16).byteValue();
+            result[i] = Integer.valueOf(hexString.substring(2 * i, 2 * i + 2), 16).byteValue();
         return result;
     }
 
@@ -124,7 +100,7 @@ public class NotepadCrypto {
         buf.append(HEX.charAt((ch >> 4) & 0x0f)).append(HEX.charAt(ch & 0x0f));
     }
 
-    public static byte[] generateHash(String text, String salt) {
+    private static byte[] generateHash(String text, String salt) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-1");
