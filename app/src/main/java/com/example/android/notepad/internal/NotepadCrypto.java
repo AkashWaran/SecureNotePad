@@ -79,9 +79,9 @@ public class NotepadCrypto {
         return stringDecrypt(iv, key, data, salt);
     }
 
-    public static byte[] generateIV() {
+    public static byte[] generateRandom(int size) {
         SecureRandom random = new SecureRandom();
-        byte iv[] = new byte[16];
+        byte iv[] = new byte[size];
         random.nextBytes(iv);
         return iv;
     }
