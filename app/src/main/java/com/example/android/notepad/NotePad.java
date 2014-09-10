@@ -150,5 +150,10 @@ public final class NotePad {
          * <P>Type: INTEGER (long from System.curentTimeMillis())</P>
          */
         public static final String COLUMN_NAME_MODIFICATION_DATE = "modified";
+
+        public static final String KEY_KEY = "key";
+        public static final String KEY_IV = "initialvector";
+        public static final String KEY_FILENAME = "file";
+        public static final String KEY_SALT = "salt";
     }
 }
