@@ -42,4 +42,12 @@ public interface IUtilities {
      * @param data - The data which is required to be erased securely
      */
     public void whiteoutBytes(byte[] data);
+
+    /**
+     * This method generates a random seed.
+     * TO BE COMPLETED BY RAJ
+     *
+     * @return A random byte array generated using hardware components
+     */
+    public byte[] generateSeed();
 }
