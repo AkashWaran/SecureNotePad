@@ -42,6 +42,10 @@ public class Utilities implements IUtilities {
         }
     }
 
+    public byte[] generateSeed() {
+        return "TO_BE_REPLACED".getBytes();
+    }
+
     protected static byte[] toByte(String hexString) {
         int len = hexString.length() / 2;
         byte[] result = new byte[len];
