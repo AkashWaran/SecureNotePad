@@ -25,24 +25,40 @@ public class CryptUtils extends Utilities implements ICryptUtils {
 
     private final static int HASH_SIZE = 40;
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
+    private final static int KEY_SIZE = 16;
 
-    public String stringEncrypt(byte[] iv, byte[] key, String data, String salt) {
-        String result = toHex(encrypt(iv, key, data.getBytes()));
-        return (toHex(generateHash(result, salt)) + result);
+    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
+        if ((iv == null) || (iv.length == 0)) {
+            iv = generateRandom(KEY_SIZE);
+        }
+        if ((salt == null) || (salt.length == 0)) {
+            salt = generateRandom(KEY_SIZE);
+        }
+        if ((key == null) || (key.length == 0)) {
+            byte[] temp = generateSeed();
+            key = generateRawKey(temp);
+            whiteoutBytes(temp);
+        }
+        String result = toHex(encrypt(iv, key, (String.format("%08d", id) + data).getBytes()));
+        return (toHex(generateHash(result.toString(), salt)) + result);
     }
 
-    public String stringDecrypt(byte[] iv, byte[] key, String data, String salt) {
+    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
         if (data.length() <= HASH_SIZE) {
             return null;
         }
         String text = data.substring(0, HASH_SIZE);
         if (text.equals(toHex(generateHash(data.substring(HASH_SIZE), salt)))) {
-            return new String(decrypt(iv, key, toByte(data.substring(HASH_SIZE))));
+            text = new String(decrypt(iv, key, toByte(data.substring(HASH_SIZE))));
+            if (Integer.parseInt(text.substring(0, 8)) == id) {
+                return text.substring(8);
+            }
+            System.out.println("ERROR : Unique ID of file does not match given id");
         }
         return null;
     }
 
-    public String fileEncrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
+    public String fileEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -55,10 +71,10 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         while ((row = buffer.readLine()) != null) {
             data += row + "\n";
         }
-        return stringEncrypt(iv, key, data, salt);
+        return stringEncrypt(iv, key, salt, id, data);
     }
 
-    public String fileDecrypt(byte[] iv, byte[] key, String path, String salt) throws IOException {
+    public String fileDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -71,17 +87,17 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         while ((row = buffer.readLine()) != null) {
             data += row + "\n";
         }
-        return stringDecrypt(iv, key, data, salt);
+        return stringDecrypt(iv, key, salt, id, data);
     }
 
-    private static byte[] generateHash(String text, String salt) {
+    private static byte[] generateHash(String text, byte[] salt) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        md.update((text + salt).getBytes());
+        md.update((text + salt.toString()).getBytes());
         return md.digest();
     }
 

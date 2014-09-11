@@ -6,6 +6,8 @@ import java.security.SecureRandom;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import static java.util.Arrays.fill;
+
 /**
  * Created by Akash on 9/9/2014.
  */
@@ -37,9 +39,11 @@ public class Utilities implements IUtilities {
     }
 
     public void whiteoutBytes(byte[] data) {
-        for (int i=0; i<data.length; i++) {
-            data[i] = 0;
-        }
+        fill(data, (byte) 0);
+    }
+
+    public byte[] generateSeed() {
+        return "TO_BE_REPLACED".getBytes();
     }
 
     protected static byte[] toByte(String hexString) {

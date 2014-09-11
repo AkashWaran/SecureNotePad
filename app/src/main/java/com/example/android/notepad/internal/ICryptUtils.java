@@ -15,14 +15,18 @@ public interface ICryptUtils {
      * Hashing function - SHA-1 Hash with 128 bits key
      *
      * @param iv    - Initialization vector required for cbc block cipher
+     *                If null or empty then an IV is generated.
      * @param key   - Key used to encrypt string
-     * @param data  - String to be encrypted
+     *                If null or empty then a key is generated.
      * @param salt  - salt used for hashing result requried for integrity check
+     *                If null or empty  salt is generated.
+     * @param id    - unique id of file
+     * @param data  - String to be encrypted
      *
      * @return  Encrypted string
      *          Returns null on failure
      */
-    public String stringEncrypt(byte[] iv, byte[] key, String data, String salt);
+    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data);
 
     /**
      *
@@ -33,13 +37,14 @@ public interface ICryptUtils {
      *
      * @param iv    - Initialization vector required for cbc block cipher
      * @param key   - Key used to decrypt string
-     * @param data  - String to be decrypted
      * @param salt  - salt used for hashing result requried for integrity check
+     * @param id    - unique id of file
+     * @param data  - String to be decrypted
      *
      * @return  Decrypted string
      *          Returns null on failure
      */
-    public String stringDecrypt(byte[] iv, byte[] key, String data, String salt);
+    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String data);
 
     /**
      *
@@ -49,16 +54,20 @@ public interface ICryptUtils {
      * Hashing function - SHA-1 Hash with 128 bits key
      *
      * @param iv    - Initialization vector required for cbc block cipher
+     *                If null or empty then an IV is generated.
      * @param key   - Key used to decrypt string
-     * @param path  - Path of file to be encrypted
+     *                If null or empty then a key is generated.
      * @param salt  - salt used for hashing result requried for integrity check
+     *                If null or empty then salt is generated.
+     * @param id    - unique id of file
+     * @param path  - Path of file to be encrypted
      *
      * @return  Encrypted string
      *          Returns null on failure
      *
      * @throws IOException
      */
-    public String fileEncrypt(byte[] iv, byte[] key, String path, String salt) throws IOException;
+    public String fileEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException;
 
     /**
      *
@@ -69,13 +78,14 @@ public interface ICryptUtils {
      *
      * @param iv    - Initialization vector required for cbc block cipher
      * @param key   - Key used to decrypt string
-     * @param path  - Path of file to be decrypted
      * @param salt  - salt used for hashing result requried for integrity check
+     * @param id    - unique id of file
+     * @param path  - Path of file to be decrypted
      *
      * @return  Decrypted string
      *          Returns null on failure
      *
      * @throws IOException
      */
-    public String fileDecrypt(byte[] iv, byte[] key, String path, String salt) throws IOException;
+    public String fileDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException;
 }
