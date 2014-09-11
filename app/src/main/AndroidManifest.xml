@@ -33,11 +33,17 @@
             <grant-uri-permission android:pathPattern=".*" />
         </provider>
 
+        <activity android:name="SplashActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
+        <activity android:name="SetPassword">
+        </activity>
+        <activity android:name=".NotePassword">
+        </activity>
         <activity android:name="NotesList" android:label="@string/title_notes_list">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.intent.action.EDIT" />

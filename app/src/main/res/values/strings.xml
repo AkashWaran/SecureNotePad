@@ -18,6 +18,10 @@
     <string name="app_name">NotePad</string>
     <string name="live_folder_name">Notes</string>
 
+    <string name="password">Password</string>
+    <string name="repassword">Confirm Password</string>
+    <string name="Ok">OK</string>
+    <string name="Clear">Clear</string>
     <string name="title_edit_title">Note title:</string>
     <string name="title_create">New note</string>
     <string name="title_edit">Edit: %1$s</string>
