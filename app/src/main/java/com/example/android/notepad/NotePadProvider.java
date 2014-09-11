@@ -17,6 +17,7 @@
 package com.example.android.notepad;
 
 import com.example.android.notepad.NotePad;
+import com.example.android.notepad.internal.CryptUtils;
 
 import android.content.ClipDescription;
 import android.content.ContentProvider;
@@ -52,6 +53,17 @@ import java.util.HashMap;
  * itself, a creation date and a modified data.
  */
 public class NotePadProvider extends ContentProvider implements PipeDataWriter<Cursor> {
+
+    // Used to encrypt/decrypt data
+    private static final CryptUtils crypto = new CryptUtils();
+
+
+    private static byte[] iv = new byte[16];
+    private static byte[] key = new byte[16];
+
+    private static byte[] salt = new byte[16];
+
+
     // Used for debugging and logging
     private static final String TAG = "NotePadProvider";
 
@@ -209,11 +221,10 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                     + NotePad.Notes.COLUMN_NAME_TITLE + " TEXT,"
                     + NotePad.Notes.COLUMN_NAME_NOTE + " TEXT,"
                     + NotePad.Notes.COLUMN_NAME_CREATE_DATE + " INTEGER,"
-                    + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER"
-                    + NotePad.Notes.KEY_KEY + " TEXT"
-                    + NotePad.Notes.KEY_IV + " TEXT" +
-                    NotePad.Notes.KEY_FILENAME + " TEXT" +
-                    NotePad.Notes.KEY_SALT + " TEXT )");
+                    + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER,"
+                    + NotePad.Notes.KEY_KEY + " BLOB,"
+                    + NotePad.Notes.KEY_IV + " BLOB," +
+                    NotePad.Notes.KEY_SALT + " BLOB )");
         }
 
         /**
@@ -553,7 +564,14 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
         // If the values map doesn't contain note text, sets the value to an empty string.
         if (values.containsKey(NotePad.Notes.COLUMN_NAME_NOTE) == false) {
             values.put(NotePad.Notes.COLUMN_NAME_NOTE, "");
+
+            values.put(NotePad.Notes.KEY_SALT, crypto.generateRandom(16).toString());
+            values.put(NotePad.Notes.KEY_IV, crypto.generateRandom(16).toString());
+            values.put(NotePad.Notes.KEY_KEY, crypto.generateRawKey("Password".getBytes()).toString());
+
+
         }
+
 
         // Opens the database object in "write" mode.
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
@@ -695,7 +713,6 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
             // If the incoming URI matches the general notes pattern, does the update based on
             // the incoming data.
             case NOTES:
-
                 // Does the update and returns the number of rows updated.
                 count = db.update(
                         NotePad.Notes.TABLE_NAME, // The database table name.
@@ -710,6 +727,18 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
             case NOTE_ID:
                 // From the incoming URI, get the note ID
                 String noteId = uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION);
+
+                String[] projection = {NotePad.Notes.KEY_KEY, NotePad.Notes.KEY_IV, NotePad.Notes.KEY_SALT};
+
+
+                Cursor cur = query(uri, projection, null, null, "");
+                cur.moveToFirst();
+                iv = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_IV)).getBytes();
+                key = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_KEY)).getBytes();
+                salt = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_SALT)).getBytes();
+
+
+
 
                 /*
                  * Starts creating the final WHERE clause by restricting it to the incoming
@@ -726,6 +755,25 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                 // clause
                 if (where != null) {
                     finalWhere = finalWhere + " AND " + where;
+                }
+
+                // If the values map doesn't contain a title, sets the value to the default title.
+                if (values.containsKey(NotePad.Notes.COLUMN_NAME_TITLE) == true) {
+
+                    String titleData = values.get(NotePad.Notes.COLUMN_NAME_TITLE).toString();
+                    String encryptTitle = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), titleData);
+                    values.put(NotePad.Notes.COLUMN_NAME_TITLE, encryptTitle);
+                }
+
+                // If the values map doesn't contain note text, sets the value to an empty string.
+                if (values.containsKey(NotePad.Notes.COLUMN_NAME_NOTE) == true) {
+
+                    String noteData = values.get(NotePad.Notes.COLUMN_NAME_NOTE).toString();
+                    String encryptData = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), noteData);
+                    values.put(NotePad.Notes.COLUMN_NAME_NOTE, encryptData);
+                    values.put(NotePad.Notes.KEY_KEY, key);
+                    values.put(NotePad.Notes.KEY_IV, iv);
+                    values.put(NotePad.Notes.KEY_SALT, salt);
                 }
 
 
