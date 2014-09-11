@@ -28,13 +28,13 @@ public class CryptUtils extends Utilities implements ICryptUtils {
     private final static int KEY_SIZE = 16;
 
     public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
-        if (iv == null) {
+        if ((iv == null) || (iv.length == 0)) {
             iv = generateRandom(KEY_SIZE);
         }
-        if (salt == null) {
+        if ((salt == null) || (salt.length == 0)) {
             salt = generateRandom(KEY_SIZE);
         }
-        if (key == null) {
+        if ((key == null) || (key.length == 0)) {
             byte[] temp = generateSeed();
             key = generateRawKey(temp);
             whiteoutBytes(temp);

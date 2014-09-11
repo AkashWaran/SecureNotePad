@@ -15,11 +15,11 @@ public interface ICryptUtils {
      * Hashing function - SHA-1 Hash with 128 bits key
      *
      * @param iv    - Initialization vector required for cbc block cipher
-     *                If null then an IV is generated.
+     *                If null or empty then an IV is generated.
      * @param key   - Key used to encrypt string
-     *                If null then a key is generated.
+     *                If null or empty then a key is generated.
      * @param salt  - salt used for hashing result requried for integrity check
-     *                If null then salt is generated.
+     *                If null or empty  salt is generated.
      * @param id    - unique id of file
      * @param data  - String to be encrypted
      *
@@ -54,11 +54,11 @@ public interface ICryptUtils {
      * Hashing function - SHA-1 Hash with 128 bits key
      *
      * @param iv    - Initialization vector required for cbc block cipher
-     *                If null then an IV is generated.
+     *                If null or empty then an IV is generated.
      * @param key   - Key used to decrypt string
-     *                If null then a key is generated.
+     *                If null or empty then a key is generated.
      * @param salt  - salt used for hashing result requried for integrity check
-     *                If null then salt is generated.
+     *                If null or empty then salt is generated.
      * @param id    - unique id of file
      * @param path  - Path of file to be encrypted
      *
