@@ -565,9 +565,9 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
         if (values.containsKey(NotePad.Notes.COLUMN_NAME_NOTE) == false) {
             values.put(NotePad.Notes.COLUMN_NAME_NOTE, "");
 
-            values.put(NotePad.Notes.KEY_SALT, crypto.generateRandom(16).toString());
-            values.put(NotePad.Notes.KEY_IV, crypto.generateRandom(16).toString());
-            values.put(NotePad.Notes.KEY_KEY, crypto.generateRawKey("Password".getBytes()).toString());
+            values.put(NotePad.Notes.KEY_SALT, crypto.generateRandom(16));
+            values.put(NotePad.Notes.KEY_IV, crypto.generateRandom(16));
+            values.put(NotePad.Notes.KEY_KEY, crypto.generateRawKey("Password".getBytes()));
 
 
         }
@@ -733,9 +733,9 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
 
                 Cursor cur = query(uri, projection, null, null, "");
                 cur.moveToFirst();
-                iv = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_IV)).getBytes();
-                key = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_KEY)).getBytes();
-                salt = cur.getString(cur.getColumnIndex(NotePad.Notes.KEY_SALT)).getBytes();
+                iv = cur.getBlob(cur.getColumnIndex(NotePad.Notes.KEY_IV));
+                key = cur.getBlob(cur.getColumnIndex(NotePad.Notes.KEY_KEY));
+                salt = cur.getBlob(cur.getColumnIndex(NotePad.Notes.KEY_SALT));
 
 
 
