@@ -38,6 +38,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.example.android.notepad.internal.CryptUtils;
+import com.example.android.notepad.internal.ICryptUtils;
+
 /**
  * This Activity handles "editing" a note, where editing is responding to
  * {@link Intent#ACTION_VIEW} (request to view data), edit a note
@@ -52,6 +55,7 @@ import android.widget.EditText;
 public class NoteEditor extends Activity {
     // For logging and debugging purposes
     private static final String TAG = "NoteEditor";
+    private static final ICryptUtils cryptUtils = new CryptUtils();
 
     /*
      * Creates a projection that returns the note ID and the note contents.
@@ -264,11 +268,16 @@ public class NoteEditor extends Activity {
              */
             mCursor.moveToFirst();
 
+            byte[] iv = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_IV));
+            byte[] key = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_KEY));
+            byte[] salt = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_SALT));
+            int id = mCursor.getInt(mCursor.getColumnIndex(NotePad.Notes._ID));
+
             // Modifies the window title for the Activity according to the current Activity state.
             if (mState == STATE_EDIT) {
                 // Set the title of the Activity to include the note title
                 int colTitleIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE);
-                String title = mCursor.getString(colTitleIndex);
+                String title = cryptUtils.stringDecrypt(iv, key, salt, id, mCursor.getString(colTitleIndex));
                 Resources res = getResources();
                 String text = String.format(res.getString(R.string.title_edit), title);
                 setTitle(text);
@@ -287,7 +296,7 @@ public class NoteEditor extends Activity {
             // Gets the note text from the Cursor and puts it in the TextView, but doesn't change
             // the text cursor's position.
             int colNoteIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
-            String note = mCursor.getString(colNoteIndex);
+            String note = cryptUtils.stringDecrypt(iv, key, salt, id, mCursor.getString(colNoteIndex));
             mText.setTextKeepState(note);
 
             // Stores the original note text, to allow the user to revert changes.
@@ -549,12 +558,16 @@ public class NoteEditor extends Activity {
                     }
                 }
             }
-            // In the values map, sets the value of the title
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
-        } else if (title != null) {
-            // In the values map, sets the value of the title
-            values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
         }
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[16];
+        byte[] salt = new byte[16];
+
+        title = cryptUtils.stringEncrypt(iv, key, salt, Integer.valueOf(mUri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), title);
+        text = cryptUtils.stringEncrypt(iv, key, salt, Integer.valueOf(mUri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), text);
+        // In the values map, sets the value of the title
+        values.put(NotePad.Notes.COLUMN_NAME_TITLE, title);
 
         // This puts the desired notes text into the map.
         values.put(NotePad.Notes.COLUMN_NAME_NOTE, text);
