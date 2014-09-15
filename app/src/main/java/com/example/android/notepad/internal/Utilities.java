@@ -67,4 +67,13 @@ public class Utilities implements IUtilities {
     private static void appendHex(StringBuilder buf, byte ch) {
         buf.append(HEX.charAt((ch >> 4) & 0x0f)).append(HEX.charAt(ch & 0x0f));
     }
+
+    protected byte[] appendBytes(byte[] firstArray, byte[] secondArray) {
+        byte[] result = new byte[firstArray.length + secondArray.length];
+        System.arraycopy(firstArray, 0, result, 0, firstArray.length);
+        System.arraycopy(secondArray, 0, result, firstArray.length, secondArray.length);
+        whiteoutBytes(firstArray);
+        whiteoutBytes(secondArray);
+        return result;
+    }
 }

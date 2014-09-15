@@ -42,15 +42,8 @@ public class CryptUtils extends Utilities implements ICryptUtils {
             whiteoutBytes(temp);
         }
 
-        ArrayList result = new ArrayList<Byte>();
-        Collections.addAll(result, encrypt(iv, key, (String.format("%08d", id) + data).getBytes()));
-        Collections.addAll(result, generateHash(result, salt));
-        Byte[] encryptedBytes = (Byte[]) result.toArray(new Byte[result.size()]);
-        byte[] encryptedData = new byte[encryptedBytes.length];
-        for (int i = 0; i < encryptedBytes.length; i++) {
-            encryptedData[i] = encryptedBytes[i];
-        }
-        return encryptedData;
+        byte[] result = encrypt(iv, key, (String.format("%08d", id) + data).getBytes());
+        return appendBytes(generateHash(result, salt), result);
     }
 
     public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] encryptedData) {
@@ -101,13 +94,8 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         return stringDecrypt(iv, key, salt, id, data.getBytes());
     }
 
-    private static byte[] generateHash(ArrayList<Byte> text, byte[] salt) {
-        Byte[] data = text.toArray(new Byte[text.size()]);
-        byte[] body = new byte[data.length];
-        for (int i = 0; i < data.length; i++) {
-            body[i] = data[i];
-        }
-        return generateHash(toHex(body), salt);
+    private static byte[] generateHash(byte[] text, byte[] salt) {
+        return generateHash(text, salt);
     }
 
     private static byte[] generateHash(String text, byte[] salt) {
