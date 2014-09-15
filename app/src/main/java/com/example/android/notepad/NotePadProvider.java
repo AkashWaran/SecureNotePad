@@ -209,11 +209,11 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                     + NotePad.Notes.COLUMN_NAME_TITLE + " TEXT,"
                     + NotePad.Notes.COLUMN_NAME_NOTE + " TEXT,"
                     + NotePad.Notes.COLUMN_NAME_CREATE_DATE + " INTEGER,"
-                    + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER"
-                    + NotePad.Notes.KEY_KEY + " TEXT"
-                    + NotePad.Notes.KEY_IV + " TEXT" +
-                    NotePad.Notes.KEY_FILENAME + " TEXT" +
-                    NotePad.Notes.KEY_SALT + " TEXT )");
+                    + NotePad.Notes.COLUMN_NAME_MODIFICATION_DATE + " INTEGER,"
+                    + NotePad.Notes.KEY_KEY + " BLOB,"
+                    + NotePad.Notes.KEY_IV + " BLOB," +
+                    NotePad.Notes.KEY_FILENAME + " BLOB," +
+                    NotePad.Notes.KEY_SALT + " BLOB )");
         }
 
         /**
