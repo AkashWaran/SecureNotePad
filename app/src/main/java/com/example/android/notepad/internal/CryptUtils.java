@@ -10,6 +10,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -27,15 +29,7 @@ public class CryptUtils extends Utilities implements ICryptUtils {
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
     private final static int KEY_SIZE = 16;
 
-    public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
-        return stringEncrypt(iv, key, salt, id, data.toString()).getBytes();
-    }
-
-    public byte[] stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
-        return stringDecrypt(iv, key, salt, id, data.toString()).getBytes();
-    }
-
-    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
+    public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
         if ((iv == null) || (iv.length == 0)) {
             iv = generateRandom(KEY_SIZE);
         }
@@ -47,11 +41,20 @@ public class CryptUtils extends Utilities implements ICryptUtils {
             key = generateRawKey(temp);
             whiteoutBytes(temp);
         }
-        String result = toHex(encrypt(iv, key, (String.format("%08d", id) + data).getBytes()));
-        return (toHex(generateHash(result.toString(), salt)) + result);
+
+        ArrayList result = new ArrayList<Byte>();
+        Collections.addAll(result, encrypt(iv, key, (String.format("%08d", id) + data).getBytes()));
+        Collections.addAll(result, generateHash(result, salt));
+        Byte[] encryptedBytes = (Byte[]) result.toArray(new Byte[result.size()]);
+        byte[] encryptedData = new byte[encryptedBytes.length];
+        for (int i = 0; i < encryptedBytes.length; i++) {
+            encryptedData[i] = encryptedBytes[i];
+        }
+        return encryptedData;
     }
 
-    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
+    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] encryptedData) {
+        String data = toHex(encryptedData);
         if (data.length() <= HASH_SIZE) {
             return null;
         }
@@ -66,7 +69,7 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         return null;
     }
 
-    public String fileEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException {
+    public byte[] fileEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException {
         String data = "", row;
         FileInputStream input = null;
         try {
@@ -95,7 +98,16 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         while ((row = buffer.readLine()) != null) {
             data += row + "\n";
         }
-        return stringDecrypt(iv, key, salt, id, data);
+        return stringDecrypt(iv, key, salt, id, data.getBytes());
+    }
+
+    private static byte[] generateHash(ArrayList<Byte> text, byte[] salt) {
+        Byte[] data = text.toArray(new Byte[text.size()]);
+        byte[] body = new byte[data.length];
+        for (int i = 0; i < data.length; i++) {
+            body[i] = data[i];
+        }
+        return generateHash(toHex(body), salt);
     }
 
     private static byte[] generateHash(String text, byte[] salt) {
