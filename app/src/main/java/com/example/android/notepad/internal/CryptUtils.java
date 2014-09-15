@@ -27,12 +27,12 @@ public class CryptUtils extends Utilities implements ICryptUtils {
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
     private final static int KEY_SIZE = 16;
 
-    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
-        return stringEncrypt(iv, key, salt, id, data.toString());
+    public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
+        return stringEncrypt(iv, key, salt, id, data.toString()).getBytes();
     }
 
-    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
-        return stringDecrypt(iv, key, salt, id, data.toString());
+    public byte[] stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
+        return stringDecrypt(iv, key, salt, id, data.toString()).getBytes();
     }
 
     public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {

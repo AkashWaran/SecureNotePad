@@ -26,7 +26,7 @@ public interface ICryptUtils {
      * @return  Encrypted string
      *          Returns null on failure
      */
-    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
+    public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
 
     /**
      *
@@ -44,7 +44,7 @@ public interface ICryptUtils {
      * @return  Decrypted string
      *          Returns null on failure
      */
-    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
+    public byte[] stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
 
     /**
      *
