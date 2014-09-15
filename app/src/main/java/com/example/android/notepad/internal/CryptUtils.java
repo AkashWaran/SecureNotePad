@@ -10,6 +10,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -23,7 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class CryptUtils extends Utilities implements ICryptUtils {
 
-    private final static int HASH_SIZE = 40;
+    private final static int HASH_SIZE = 20;
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
     private final static int KEY_SIZE = 16;
 
@@ -44,16 +45,18 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         return appendBytes(generateHash(result, salt), result);
     }
 
-    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] encryptedData) {
-        String data = toHex(encryptedData);
-        if (data.length() <= HASH_SIZE) {
+    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
+        if (data.length <= HASH_SIZE) {
             return null;
         }
-        String text = data.substring(0, HASH_SIZE);
-        if (text.equals(toHex(generateHash(data.substring(HASH_SIZE), salt)))) {
-            text = new String(decrypt(iv, key, toByte(data.substring(HASH_SIZE))));
-            if (Integer.parseInt(text.substring(0, 8)) == id) {
-                return text.substring(8);
+        byte[] hash = new byte[HASH_SIZE];
+        byte[] text = new byte[data.length - HASH_SIZE];
+        System.arraycopy(data, 0, hash, 0, HASH_SIZE);
+        System.arraycopy(data, HASH_SIZE, text, 0, text.length);
+        if (Arrays.equals(hash, generateHash(text, salt))) {
+            String result = new String(decrypt(iv, key, text));
+            if (Integer.parseInt(result.substring(0, 8)) == id) {
+                return result.substring(8);
             }
             System.out.println("ERROR : Unique ID of file does not match given id");
         }
@@ -92,8 +95,16 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         return stringDecrypt(iv, key, salt, id, data.getBytes());
     }
 
-    private static byte[] generateHash(byte[] text, byte[] salt) {
-        return generateHash(toHex(text), salt);
+    private byte[] generateHash(byte[] text, byte[] salt) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] body = appendBytes(text, salt);
+        md.update(body);
+        return md.digest();
     }
 
     private static byte[] generateHash(String text, byte[] salt) {

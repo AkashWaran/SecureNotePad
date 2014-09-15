@@ -72,8 +72,6 @@ public class Utilities implements IUtilities {
         byte[] result = new byte[firstArray.length + secondArray.length];
         System.arraycopy(firstArray, 0, result, 0, firstArray.length);
         System.arraycopy(secondArray, 0, result, firstArray.length, secondArray.length);
-        whiteoutBytes(firstArray);
-        whiteoutBytes(secondArray);
         return result;
     }
 }
