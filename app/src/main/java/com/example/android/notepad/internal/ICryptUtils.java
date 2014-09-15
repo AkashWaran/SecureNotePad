@@ -26,6 +26,45 @@ public interface ICryptUtils {
      * @return  Encrypted string
      *          Returns null on failure
      */
+    public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
+
+    /**
+     *
+     * This method is used to decrypt a notepad file, it first verifies the hash
+     * for integrity and if the hash matches proceeds to decrypt the string.
+     * Cipher used - AES block cipher (namely CBC)
+     * Hashing function - SHA-1 Hash with 128 bits key
+     *
+     * @param iv    - Initialization vector required for cbc block cipher
+     * @param key   - Key used to decrypt string
+     * @param salt  - salt used for hashing result requried for integrity check
+     * @param id    - unique id of file
+     * @param data  - String to be decrypted
+     *
+     * @return  Decrypted string
+     *          Returns null on failure
+     */
+    public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
+
+    /**
+     *
+     * This method is used to encrypt a notepad file, it automatically hashes the
+     * result and stores it along with the file for integrity check.
+     * Cipher used - AES block cipher (namely CBC)
+     * Hashing function - SHA-1 Hash with 128 bits key
+     *
+     * @param iv    - Initialization vector required for cbc block cipher
+     *                If null or empty then an IV is generated.
+     * @param key   - Key used to encrypt string
+     *                If null or empty then a key is generated.
+     * @param salt  - salt used for hashing result requried for integrity check
+     *                If null or empty  salt is generated.
+     * @param id    - unique id of file
+     * @param data  - String to be encrypted
+     *
+     * @return  Encrypted string
+     *          Returns null on failure
+     */
     public String stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data);
 
     /**
