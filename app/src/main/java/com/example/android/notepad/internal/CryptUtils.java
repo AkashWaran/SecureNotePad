@@ -10,8 +10,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -95,7 +93,7 @@ public class CryptUtils extends Utilities implements ICryptUtils {
     }
 
     private static byte[] generateHash(byte[] text, byte[] salt) {
-        return generateHash(text, salt);
+        return generateHash(toHex(text), salt);
     }
 
     private static byte[] generateHash(String text, byte[] salt) {
