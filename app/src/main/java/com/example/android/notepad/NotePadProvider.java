@@ -62,6 +62,8 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
     private static byte[] key = new byte[16];
 
     private static byte[] salt = new byte[16];
+    private static byte[] encryptTitle;
+    private static byte[] encryptData;
 
 
     // Used for debugging and logging
@@ -761,10 +763,9 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                 if (values.containsKey(NotePad.Notes.COLUMN_NAME_TITLE) == true) {
 
                     String titleData = new String(values.get(NotePad.Notes.COLUMN_NAME_TITLE).toString().getBytes());
-                    String encryptTitle = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), titleData);
-                    String noteTitle = crypto.stringDecrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), encryptTitle);
+                    encryptTitle = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), titleData);
 
-                    values.put(NotePad.Notes.COLUMN_NAME_TITLE, encryptTitle.getBytes());
+                    values.put(NotePad.Notes.COLUMN_NAME_TITLE, encryptTitle);
                 }
 
                 // If the values map doesn't contain note text, sets the value to an empty string.
@@ -772,10 +773,9 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
 
                     String noteData = new String(values.get(NotePad.Notes.COLUMN_NAME_NOTE).toString().getBytes());
 
-                    String encryptData = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), noteData);
-                    String noteTitle = crypto.stringDecrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), encryptData);
+                    encryptData = crypto.stringEncrypt(iv, key, salt, Integer.valueOf(uri.getPathSegments().get(NotePad.Notes.NOTE_ID_PATH_POSITION)), noteData);
 
-                    values.put(NotePad.Notes.COLUMN_NAME_NOTE, encryptData.getBytes());
+                    values.put(NotePad.Notes.COLUMN_NAME_NOTE, encryptData);
                     values.put(NotePad.Notes.KEY_KEY, key);
                     values.put(NotePad.Notes.KEY_IV, iv);
                     values.put(NotePad.Notes.KEY_SALT, salt);

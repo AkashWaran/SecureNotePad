@@ -57,6 +57,8 @@ public class NoteEditor extends Activity {
     private static final String TAG = "NoteEditor";
 
     private static byte[] iv = new byte[16];
+    private static byte[] decryptTitle = null;
+
     private static byte[] key = new byte[16];
 
     private static byte[] salt = new byte[16];
@@ -286,9 +288,12 @@ public class NoteEditor extends Activity {
             if (mState == STATE_EDIT) {
                 // Set the title of the Activity to include the note title
                 int colTitleIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE);
-                byte[] decryptTitle = mCursor.getBlob(colTitleIndex);
+                decryptTitle = mCursor.getBlob(colTitleIndex);
                 int columnID = mCursor.getInt(mCursor.getColumnIndex(NotePad.Notes._ID));
-                String title = new String(crypto.stringDecrypt(iv, key, salt, columnID, decryptTitle.toString()));
+                String title = "";
+                if (decryptTitle.length > 0) {
+                    title = crypto.stringDecrypt(iv, key, salt, columnID, decryptTitle);
+                }
                 Resources res = getResources();
                 String text = String.format(res.getString(R.string.title_edit), title);
                 setTitle(text);
@@ -309,9 +314,15 @@ public class NoteEditor extends Activity {
             int colNoteIndex = mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_NOTE);
             byte[] decryptNote = mCursor.getBlob(colNoteIndex);
             int columnID = mCursor.getInt(mCursor.getColumnIndex(NotePad.Notes._ID));
-            String decryptedNote = crypto.stringDecrypt(iv, key, salt, columnID, decryptNote.toString());
-            String note = new String(decryptedNote);
+            String note = "";
+            if (decryptNote.length > 0) {
+                note = crypto.stringDecrypt(iv, key, salt, columnID, decryptNote);
+            }
+            if (note == null)
+                note = "";
+
             mText.setTextKeepState(note);
+
 
             // Stores the original note text, to allow the user to revert changes.
             if (mOriginalContent == null) {
@@ -391,7 +402,7 @@ public class NoteEditor extends Activity {
                 // Creates a map to contain the new values for the columns
                 updateNote(text, null);
             } else if (mState == STATE_INSERT) {
-                updateNote(text, text);
+             //  updateNote(text, text);
                 mState = STATE_EDIT;
             }
         }
@@ -413,7 +424,7 @@ public class NoteEditor extends Activity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.editor_options_menu, menu);
 
-        // Only add extra menu items for a saved note 
+        // Only add extra menu items for a saved note
         if (mState == STATE_EDIT) {
             // Append to the
             // menu items for any other activities that can do stuff with it
@@ -441,11 +452,14 @@ public class NoteEditor extends Activity {
 
         byte[] decryptNote = mCursor.getBlob(colNoteIndex);
         int columnID = mCursor.getInt(mCursor.getColumnIndex(NotePad.Notes._ID));
-
-
-        String savedNote = new String(new String(crypto.stringDecrypt(iv, key, salt, columnID, decryptNote.toString())));
-        String currentNote = mText.getText().toString();
-        if (savedNote.equals(currentNote)) {
+        String savedNote = "";
+        if (decryptNote.length > 0) {
+            savedNote = crypto.stringDecrypt(iv, key, salt, columnID, decryptNote);
+        }
+        String currentNote = "";
+        if (mText.getText() != null)
+            currentNote = mText.getText().toString();
+        if (currentNote != null && savedNote.equals(currentNote)) {
             menu.findItem(R.id.menu_revert).setVisible(false);
         } else {
             menu.findItem(R.id.menu_revert).setVisible(true);
