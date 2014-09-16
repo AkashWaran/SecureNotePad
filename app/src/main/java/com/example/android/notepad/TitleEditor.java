@@ -24,10 +24,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
+import com.example.android.notepad.internal.CryptUtils;
+import com.example.android.notepad.internal.ICryptUtils;
+
 /**
  * This Activity allows the user to edit a note's title. It displays a floating window
  * containing an EditText.
- *
+ * <p/>
  * NOTE: Notice that the provider operations in this Activity are taking place on the UI thread.
  * This is not a good practice. It is only done here to make the code more readable. A real
  * application should use the {@link android.content.AsyncQueryHandler}
@@ -40,10 +43,19 @@ public class TitleEditor extends Activity {
      */
     public static final String EDIT_TITLE_ACTION = "com.android.notepad.action.EDIT_TITLE";
 
+    private static byte[] iv = new byte[16];
+    private static byte[] key = new byte[16];
+
+    private static byte[] salt = new byte[16];
+
+    private static ICryptUtils crypto;
     // Creates a projection that returns the note ID and the note contents.
-    private static final String[] PROJECTION = new String[] {
+    private static final String[] PROJECTION = new String[]{
             NotePad.Notes._ID, // 0
             NotePad.Notes.COLUMN_NAME_TITLE, // 1
+            NotePad.Notes.KEY_IV,
+            NotePad.Notes.KEY_KEY,
+            NotePad.Notes.KEY_SALT
     };
 
     // The position of the title column in a Cursor returned by the provider.
@@ -72,7 +84,7 @@ public class TitleEditor extends Activity {
         // Get the Intent that activated this Activity, and from it get the URI of the note whose
         // title we need to edit.
         mUri = getIntent().getData();
-
+        crypto = new CryptUtils(getApplicationContext());
         /*
          * Using the URI passed in with the triggering Intent, gets the note.
          *
@@ -83,11 +95,11 @@ public class TitleEditor extends Activity {
          */
 
         mCursor = managedQuery(
-            mUri,        // The URI for the note that is to be retrieved.
-            PROJECTION,  // The columns to retrieve
-            null,        // No selection criteria are used, so no where columns are needed.
-            null,        // No where columns are used, so no where values are needed.
-            null         // No sort order is needed.
+                mUri,        // The URI for the note that is to be retrieved.
+                PROJECTION,  // The columns to retrieve
+                null,        // No selection criteria are used, so no where columns are needed.
+                null,        // No where columns are used, so no where values are needed.
+                null         // No sort order is needed.
         );
 
         // Gets the View ID for the EditText box
@@ -97,7 +109,7 @@ public class TitleEditor extends Activity {
     /**
      * This method is called when the Activity is about to come to the foreground. This happens
      * when the Activity comes to the top of the task stack, OR when it is first starting.
-     *
+     * <p/>
      * Displays the current title for the selected note.
      */
     @Override
@@ -108,24 +120,36 @@ public class TitleEditor extends Activity {
         // Cursor object is not null. If it is *empty*, then mCursor.getCount() == 0.
         if (mCursor != null) {
 
+            if (crypto == null) {
+                crypto = new CryptUtils(getApplicationContext());
+            }
+
             // The Cursor was just retrieved, so its index is set to one record *before* the first
             // record retrieved. This moves it to the first record.
             mCursor.moveToFirst();
+            int columnId = mCursor.getInt(mCursor.getColumnIndex(NotePad.Notes._ID));
+
+            iv = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_IV));
+            key = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_KEY));
+            salt = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.KEY_SALT));
+            byte[] blobObject = mCursor.getBlob(mCursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE));
+
+            String noteTitle = crypto.stringDecrypt(iv, key, salt, columnId, blobObject);
 
             // Displays the current title text in the EditText object.
-            mText.setText(mCursor.getString(COLUMN_INDEX_TITLE));
+            mText.setText(noteTitle);
         }
     }
 
     /**
      * This method is called when the Activity loses focus.
-     *
+     * <p/>
      * For Activity objects that edit information, onPause() may be the one place where changes are
      * saved. The Android application model is predicated on the idea that "save" and "exit" aren't
      * required actions. When users navigate away from an Activity, they shouldn't have to go back
      * to it to complete their work. The act of going away should save everything and leave the
      * Activity in a state where Android can destroy it if necessary.
-     *
+     * <p/>
      * Updates the note with the text currently in the text box.
      */
     @Override
@@ -152,10 +176,10 @@ public class TitleEditor extends Activity {
              * android.content.AsyncQueryHandler or android.os.AsyncTask.
              */
             getContentResolver().update(
-                mUri,    // The URI for the note to update.
-                values,  // The values map containing the columns to update and the values to use.
-                null,    // No selection criteria is used, so no "where" columns are needed.
-                null     // No "where" columns are used, so no "where" values are needed.
+                    mUri,    // The URI for the note to update.
+                    values,  // The values map containing the columns to update and the values to use.
+                    null,    // No selection criteria is used, so no "where" columns are needed.
+                    null     // No "where" columns are used, so no "where" values are needed.
             );
 
         }

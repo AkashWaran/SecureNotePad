@@ -41,6 +41,8 @@ import android.widget.EditText;
 import com.example.android.notepad.internal.CryptUtils;
 import com.example.android.notepad.internal.ICryptUtils;
 
+import java.lang.reflect.Array;
+
 /**
  * This Activity handles "editing" a note, where editing is responding to
  * {@link Intent#ACTION_VIEW} (request to view data), edit a note
@@ -63,7 +65,7 @@ public class NoteEditor extends Activity {
 
     private static byte[] salt = new byte[16];
 
-    private static final ICryptUtils crypto = new CryptUtils();
+    private static ICryptUtils crypto;
     /*
      * Creates a projection that returns the note ID and the note contents.
      */
@@ -124,6 +126,9 @@ public class NoteEditor extends Activity {
             // Gets the global Rect and Paint objects
             Rect r = mRect;
             Paint paint = mPaint;
+            crypto = new CryptUtils(getContext());
+
+
 
             /*
              * Draws one line in the rectangle for every line of text in the EditText
@@ -264,10 +269,16 @@ public class NoteEditor extends Activity {
     protected void onResume() {
         super.onResume();
 
+
+        if (crypto == null) {
+            crypto = new CryptUtils(getApplicationContext());
+        }
         /*
          * mCursor is initialized, since onCreate() always precedes onResume for any running
          * process. This tests that it's not null, since it should always contain data.
          */
+
+
         if (mCursor != null) {
             // Requery in case something changed while paused (such as the title)
             mCursor.requery();
@@ -402,7 +413,7 @@ public class NoteEditor extends Activity {
                 // Creates a map to contain the new values for the columns
                 updateNote(text, null);
             } else if (mState == STATE_INSERT) {
-             //  updateNote(text, text);
+                //  updateNote(text, text);
                 mState = STATE_EDIT;
             }
         }
