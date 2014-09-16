@@ -131,9 +131,12 @@ public class CryptUtils implements ICryptUtils {
         return iv;
     }
 
-    public byte[] generateRawKey(byte[] seed) {
-        if (seed == null || seed.length == 0) {
+    public byte[] generateRawKey(byte[] data) {
+        byte[] seed;
+        if (data == null || data.length == 0) {
             seed = utilities.generateSeed();
+        } else {
+            seed = data;
         }
         KeyGenerator keyGenerator = null;
         SecureRandom secureRandom = null;
@@ -146,6 +149,7 @@ public class CryptUtils implements ICryptUtils {
         secureRandom.setSeed(seed);
         keyGenerator.init(128, secureRandom);
         SecretKey secretKey = keyGenerator.generateKey();
+        utilities.whiteoutData(seed);
         return secretKey.getEncoded();
     }
 
