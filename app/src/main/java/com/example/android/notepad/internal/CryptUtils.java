@@ -132,6 +132,9 @@ public class CryptUtils implements ICryptUtils {
     }
 
     public byte[] generateRawKey(byte[] seed) {
+        if (seed == null || seed.length == 0) {
+            seed = utilities.generateSeed();
+        }
         KeyGenerator keyGenerator = null;
         SecureRandom secureRandom = null;
         try {
@@ -144,6 +147,10 @@ public class CryptUtils implements ICryptUtils {
         keyGenerator.init(128, secureRandom);
         SecretKey secretKey = keyGenerator.generateKey();
         return secretKey.getEncoded();
+    }
+
+    public IUtilities getUtilityInstance() {
+        return utilities;
     }
 
     public byte[] generateHash(byte[] text, byte[] salt) {

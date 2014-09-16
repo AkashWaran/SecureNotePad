@@ -127,4 +127,12 @@ public interface ICryptUtils {
      * @return Random byte array
      */
     public byte[] generateRawKey(byte[] seed);
+
+    /**
+     *
+     * This method returns an instance of utilities
+     *
+     * @return instance of utilities class
+     */
+    public IUtilities getUtilityInstance();
 }
