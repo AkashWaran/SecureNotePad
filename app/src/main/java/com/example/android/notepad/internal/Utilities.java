@@ -7,11 +7,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 import java.nio.ByteBuffer;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 import static java.util.Arrays.fill;
 
@@ -46,28 +41,6 @@ public class Utilities implements IUtilities, SensorEventListener {
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
-    }
-
-    public byte[] generateRandom(int size) {
-        SecureRandom random = new SecureRandom();
-        byte iv[] = new byte[size];
-        random.nextBytes(iv);
-        return iv;
-    }
-
-    public byte[] generateRawKey(byte[] seed) {
-        KeyGenerator keyGenerator = null;
-        SecureRandom secureRandom = null;
-        try {
-            keyGenerator = KeyGenerator.getInstance("AES");
-            secureRandom = SecureRandom.getInstance("SHA1PRNG");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        secureRandom.setSeed(seed);
-        keyGenerator.init(128, secureRandom);
-        SecretKey secretKey = keyGenerator.generateKey();
-        return secretKey.getEncoded();
     }
 
     public void whiteoutBytes(byte[] data) {

@@ -12,12 +12,15 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -101,6 +104,28 @@ public class CryptUtils implements ICryptUtils {
             data += row + "\n";
         }
         return stringDecrypt(iv, key, salt, id, data.getBytes());
+    }
+
+    public byte[] generateRandom(int size) {
+        SecureRandom random = new SecureRandom();
+        byte iv[] = new byte[size];
+        random.nextBytes(iv);
+        return iv;
+    }
+
+    public byte[] generateRawKey(byte[] seed) {
+        KeyGenerator keyGenerator = null;
+        SecureRandom secureRandom = null;
+        try {
+            keyGenerator = KeyGenerator.getInstance("AES");
+            secureRandom = SecureRandom.getInstance("SHA1PRNG");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        secureRandom.setSeed(seed);
+        keyGenerator.init(128, secureRandom);
+        SecretKey secretKey = keyGenerator.generateKey();
+        return secretKey.getEncoded();
     }
 
     private byte[] generateHash(byte[] text, byte[] salt) {

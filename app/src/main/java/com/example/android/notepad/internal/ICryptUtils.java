@@ -21,9 +21,9 @@ public interface ICryptUtils {
      * @param salt  - salt used for hashing result requried for integrity check
      *                If null or empty  salt is generated.
      * @param id    - unique id of file
-     * @param data  - byte array to be encrypted
+     * @param data  - string to be encrypted
      *
-     * @return  Encrypted string
+     * @return  Encrypted string as byte array
      *          Returns null on failure
      */
     public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data);
@@ -39,9 +39,9 @@ public interface ICryptUtils {
      * @param key   - Key used to decrypt string
      * @param salt  - salt used for hashing result requried for integrity check
      * @param id    - unique id of file
-     * @param data  - String to be decrypted
+     * @param data  - byte array to be decrypted
      *
-     * @return  Decrypted string as a byte array
+     * @return  Decrypted string
      *          Returns null on failure
      */
     public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data);
@@ -62,7 +62,7 @@ public interface ICryptUtils {
      * @param id    - unique id of file
      * @param path  - Path of file to be encrypted
      *
-     * @return  Encrypted string
+     * @return  Encrypted string as byte array
      *          Returns null on failure
      *
      * @throws IOException
@@ -88,4 +88,32 @@ public interface ICryptUtils {
      * @throws IOException
      */
     public String fileDecrypt(byte[] iv, byte[] key, byte[] salt, int id, String path) throws IOException;
+
+    /**
+     *
+     * This method can be used to generate a random byte array.
+     * This is useful for generating salt or initializing vectors.
+     *
+     * Note : This method makes use of secure random
+     *
+     * @param size - The number of bytes of data you want to randomly generate
+     *
+     * @return Random byte array
+     */
+    public byte[] generateRandom(int size);
+
+    /**
+     *
+     * This method is used to generate the key used for encryption.
+     * Due to the nature of key we need this to be truely random and it is
+     * thus generated using a seed provided by the user.
+     * This is done to ensure randomness by using a turely random seed.
+     *
+     * Note : This function is used where the randomness of the result is of utmost importance
+     *
+     * @param seed - Random seed which we use to generate a random key.
+     *
+     * @return Random byte array
+     */
+    public byte[] generateRawKey(byte[] seed);
 }
