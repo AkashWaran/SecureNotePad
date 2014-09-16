@@ -42,6 +42,7 @@ public class NotePassword extends Activity {
                     public void onClick(DialogInterface dialog, int which) {
                         // Write your code here to execute after dialog
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
                         String pass = sharedPreferences.getString("password", null);
                         String password = input.getText().toString();
                         if (password.equals(pass)) {
@@ -49,6 +50,8 @@ public class NotePassword extends Activity {
                             startActivity(new Intent(NotePassword.this,NotesList.class));
                         } else {
                             //  Toast.makeText(getApplicationContext(), "Wrong Password!", Toast.LENGTH_SHORT).show();
+
+
                             startActivity(new Intent(NotePassword.this,NotePassword.class));
 
                         }
