@@ -39,19 +39,31 @@ public class CryptUtils implements ICryptUtils {
     }
 
     public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
-        if ((iv == null) || (iv.length == 0)) {
+        if (iv == null || key == null || salt == null) {
+            System.out.println("ERROR : 'null' value received in required field");
+            return null;
+        }
+        if (iv.length == 0) {
             iv = generateRandom(KEY_SIZE);
         }
-        if ((salt == null) || (salt.length == 0)) {
+        if (salt.length == 0) {
             salt = generateRandom(KEY_SIZE);
         }
-        if ((key == null) || (key.length == 0)) {
+        if (key.length == 0) {
             byte[] temp = utilities.generateSeed();
             key = generateRawKey(temp);
             utilities.whiteoutBytes(temp);
         }
         byte[] result = encrypt(iv, key, (String.format("%08d", id) + data).getBytes());
-        return utilities.appendBytes(generateHash(result, salt), result);
+        byte[] hash = generateHash(result, salt);
+        byte[] encryptedData = utilities.appendBytes(hash, result);
+
+        //Cleanup
+        id = 0;
+        utilities.whiteoutBytes(result);
+        utilities.whiteoutBytes(hash);
+
+        return encryptedData;
     }
 
     public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
@@ -64,7 +76,13 @@ public class CryptUtils implements ICryptUtils {
         System.arraycopy(data, HASH_SIZE, text, 0, text.length);
         if (Arrays.equals(hash, generateHash(text, salt))) {
             String result = new String(decrypt(iv, key, text));
+
+            //Cleanup
+            utilities.whiteoutBytes(text);
+            utilities.whiteoutBytes(hash);
+
             if (Integer.parseInt(result.substring(0, 8)) == id) {
+                id = 0;
                 return result.substring(8);
             }
             System.out.println("ERROR : Unique ID of file does not match given id");
@@ -135,8 +153,7 @@ public class CryptUtils implements ICryptUtils {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        byte[] body = utilities.appendBytes(text, salt);
-        md.update(body);
+        md.update(utilities.appendBytes(text, salt));
         return md.digest();
     }
 
