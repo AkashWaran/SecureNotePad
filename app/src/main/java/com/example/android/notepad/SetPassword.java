@@ -13,24 +13,35 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.android.notepad.internal.CryptUtils;
+import com.example.android.notepad.internal.ICryptUtils;
+
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+
 
 /**
  * Created by rohitramkumar on 9/5/14.
  */
 public class SetPassword extends Activity{
-
+    private static ICryptUtils crypto;
+    private static byte[] salt=new byte[16];
+    private static byte[] hash=new byte[16];
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.set_password);
 
-
+        crypto =new CryptUtils(getApplicationContext());
         Button clear = (Button) findViewById(R.id.Clear);
         clear.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -41,16 +52,26 @@ public class SetPassword extends Activity{
 
         Button ok = (Button) findViewById(R.id.Ok);
         ok.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+                 public void onClick(View v) {
 
-                String pwd =((EditText)findViewById(R.id.password)).getText().toString();
-                String repwd = ((EditText)findViewById(R.id.repassword)).getText().toString();
+                 EditText password = ((EditText)findViewById(R.id.password));
+                 char[] pwd = new char[password.length()];
+                 password.getText().getChars(0,password.length(),pwd,0);
+
+                 EditText repassword = ((EditText)findViewById(R.id.repassword));
+                 char[] repwd = new char[repassword.length()];
+                 repassword.getText().getChars(0,repassword.length(),repwd,0);
+
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(SetPassword.this);
-                if (pwd.equals(repwd)) {
-                    // Creating alert Dialog with one Button
+                if (Arrays.equals(pwd,repwd)) {
+                    salt=crypto.generateRandom(16);
+                    byte[] pwdInBytes = toBytes(pwd);
+                    hash=crypto.generateHash(pwdInBytes,salt);
+                    //n Creating alert Dialog with one Button
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                     Editor editor = sharedPreferences.edit();
-                    editor.putString("password",pwd);
+                    editor.putString("passHash", Base64.encodeToString(hash, Base64.DEFAULT));
+                    editor.putString("passSalt", Base64.encodeToString(salt, Base64.DEFAULT));
                     // Setting Dialog Title
                     editor.commit();
                     startActivity(new Intent(SetPassword.this,NotesList.class));
@@ -76,6 +97,16 @@ public class SetPassword extends Activity{
         });
 
 
+    }
+
+    private byte[] toBytes(char[] chars) {
+        CharBuffer charBuffer = CharBuffer.wrap(chars);
+        ByteBuffer byteBuffer = Charset.forName("UTF-8").encode(charBuffer);
+        byte[] bytes = Arrays.copyOfRange(byteBuffer.array(),
+                byteBuffer.position(), byteBuffer.limit());
+        Arrays.fill(charBuffer.array(), '\u0000'); // clear sensitive data
+        Arrays.fill(byteBuffer.array(), (byte) 0); // clear sensitive data
+        return bytes;
     }
 
     @Override
