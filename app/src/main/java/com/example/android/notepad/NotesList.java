@@ -149,12 +149,11 @@ public class NotesList extends ListActivity {
 
             int columnId = cursor.getInt(cursor.getColumnIndex(NotePad.Notes._ID));
             byte[] blobObject = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE));
-            String encryptTitle = new String(blobObject);
             iv = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_IV));
             key = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_KEY));
             salt = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_SALT));
-            noteTitle = crypto.stringDecrypt(iv, key, salt, columnId, encryptTitle);
-            matrixCur.addRow(new Object[]{noteTitle, columnId});
+            noteTitle = crypto.stringDecrypt(iv, key, salt, columnId, blobObject);
+            matrixCur.addRow(new Object[]{new String(noteTitle), columnId});
 
             cursor.moveToNext();
         }
