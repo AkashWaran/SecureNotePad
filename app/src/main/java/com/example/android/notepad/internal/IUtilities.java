@@ -13,7 +13,7 @@ public interface IUtilities {
      *
      * @param data - The data which is required to be erased securely
      */
-    public void whiteoutBytes(byte[] data);
+    public void whiteoutData(byte[] data);
 
     /**
      *

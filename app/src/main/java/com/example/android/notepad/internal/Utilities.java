@@ -43,11 +43,11 @@ public class Utilities implements IUtilities, SensorEventListener {
 
     }
 
-    public void whiteoutBytes(byte[] data) {
+    public void whiteoutData(byte[] data) {
         fill(data, (byte) 0);
     }
 
-    public void whiteoutChars(char[] data) {
+    public void whiteoutChar(char[] data) {
         fill(data, (char) 0);
     }
 

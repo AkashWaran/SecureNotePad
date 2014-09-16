@@ -52,7 +52,7 @@ public class CryptUtils implements ICryptUtils {
         if (key.length == 0) {
             byte[] temp = utilities.generateSeed();
             key = generateRawKey(temp);
-            utilities.whiteoutBytes(temp);
+            utilities.whiteoutData(temp);
         }
         byte[] result = encrypt(iv, key, (String.format("%08d", id) + data).getBytes());
         byte[] hash = generateHash(result, salt);
@@ -60,8 +60,8 @@ public class CryptUtils implements ICryptUtils {
 
         //Cleanup
         id = 0;
-        utilities.whiteoutBytes(result);
-        utilities.whiteoutBytes(hash);
+        utilities.whiteoutData(result);
+        utilities.whiteoutData(hash);
 
         return encryptedData;
     }
@@ -78,8 +78,8 @@ public class CryptUtils implements ICryptUtils {
             String result = new String(decrypt(iv, key, text));
 
             //Cleanup
-            utilities.whiteoutBytes(text);
-            utilities.whiteoutBytes(hash);
+            utilities.whiteoutData(text);
+            utilities.whiteoutData(hash);
 
             if (Integer.parseInt(result.substring(0, 8)) == id) {
                 id = 0;
