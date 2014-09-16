@@ -16,16 +16,13 @@
 
 package com.example.android.notepad;
 
-import com.example.android.notepad.NotePad;
-import com.example.android.notepad.internal.CryptUtils;
-
 import android.content.ClipDescription;
 import android.content.ContentProvider;
+import android.content.ContentProvider.PipeDataWriter;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
-import android.content.ContentProvider.PipeDataWriter;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -39,6 +36,8 @@ import android.os.ParcelFileDescriptor;
 import android.provider.LiveFolders;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.example.android.notepad.internal.CryptUtils;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

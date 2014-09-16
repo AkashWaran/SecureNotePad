@@ -16,14 +16,10 @@
 
 package com.example.android.notepad;
 
-import com.example.android.notepad.NotePad;
-import com.example.android.notepad.internal.CryptUtils;
-import com.example.android.notepad.internal.ICryptUtils;
-
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.ClipboardManager;
 import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
@@ -35,14 +31,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+
+import com.example.android.notepad.internal.CryptUtils;
+import com.example.android.notepad.internal.ICryptUtils;
 
 /**
  * Displays a list of notes. Will display notes from the {@link Uri}

@@ -3,11 +3,11 @@ package com.example.android.notepad;
 /**
  * Created by Misha on 9/10/2014.
  */
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
