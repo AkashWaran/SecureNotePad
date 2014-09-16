@@ -146,7 +146,7 @@ public class CryptUtils implements ICryptUtils {
         return secretKey.getEncoded();
     }
 
-    private byte[] generateHash(byte[] text, byte[] salt) {
+    public byte[] generateHash(byte[] text, byte[] salt) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-1");

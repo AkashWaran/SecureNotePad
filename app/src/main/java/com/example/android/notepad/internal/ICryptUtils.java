@@ -91,6 +91,17 @@ public interface ICryptUtils {
 
     /**
      *
+     * This method is used in order to generate a hash from the text
+     *
+     * @param text  - This parameter constitutes the data that needs to be hased
+     * @param salt  - This parameter is the salt used to prevent identical data from forming identical hashes
+     *
+     * @return This method will return the hash of the text concatinated with the salt
+     */
+    public byte[] generateHash(byte[] text, byte[] salt);
+
+    /**
+     *
      * This method can be used to generate a random byte array.
      * This is useful for generating salt or initializing vectors.
      *
