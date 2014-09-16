@@ -109,7 +109,7 @@ public interface ICryptUtils {
      *
      * @return hash of entered data
      */
-    public byte[] secyreHash(byte[] text);
+    public byte[] secureHash(byte[] text);
 
     /**
      *

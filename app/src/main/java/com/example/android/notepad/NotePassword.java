@@ -61,10 +61,13 @@ public class NotePassword extends Activity {
                         char[] password = new char[input.length()];
                         input.getText().getChars(0, input.length(), password, 0);
                         byte[] pwdInBytes = toBytes(password);
+                        crypto.getUtilityInstance().whiteoutChar(password);
                         actualHash = crypto.generateHash(pwdInBytes, passSalt);
                         String finalHash = "";
                         if(actualHash.length != 0)
-                        finalHash = new String(actualHash);
+                            finalHash = new String(actualHash);
+                        crypto.getUtilityInstance().whiteoutData(actualHash);
+                        crypto.getUtilityInstance().whiteoutData(passSalt);
                         if (finalHash!=null && finalHash.equals(new String(passHash))) {
                             // Toast.makeText(getApplicationContext(), "Password Matched", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(NotePassword.this, NotesList.class));

@@ -66,6 +66,8 @@ public class SetPassword extends Activity{
                 if (Arrays.equals(pwd,repwd)) {
                     salt=crypto.generateRandom(16);
                     byte[] pwdInBytes = toBytes(pwd);
+                    crypto.getUtilityInstance().whiteoutChar(pwd);
+                    crypto.getUtilityInstance().whiteoutChar(repwd);
                     hash=crypto.generateHash(pwdInBytes,salt);
                     //n Creating alert Dialog with one Button
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -74,6 +76,8 @@ public class SetPassword extends Activity{
                     editor.putString("passSalt", Base64.encodeToString(salt, Base64.DEFAULT));
                     // Setting Dialog Title
                     editor.commit();
+                    crypto.getUtilityInstance().whiteoutData(hash);
+                    crypto.getUtilityInstance().whiteoutData(salt);
                     startActivity(new Intent(SetPassword.this,NotesList.class));
 
 
