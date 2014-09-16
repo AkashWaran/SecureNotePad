@@ -1,5 +1,12 @@
 package com.example.android.notepad.internal;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
@@ -11,9 +18,35 @@ import static java.util.Arrays.fill;
 /**
  * Created by Akash on 9/9/2014.
  */
-public class Utilities implements IUtilities {
+public class Utilities implements IUtilities, SensorEventListener {
 
     private final static String HEX = "0123456789ABCDEF";
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private byte[] seedBuffer = new byte[12];
+    private boolean seedUpdated = false;
+
+    public Utilities(Context mContext) {
+        sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        byte[] sensorData;
+        sensorData = ByteBuffer.allocate(4).putFloat(sensorEvent.values[0]).array();
+        System.arraycopy(sensorData, 0, seedBuffer, 0, 4);
+        sensorData = ByteBuffer.allocate(4).putFloat(sensorEvent.values[1]).array();
+        System.arraycopy(sensorData, 0, seedBuffer, 4, 4);
+        sensorData = ByteBuffer.allocate(4).putFloat(sensorEvent.values[2]).array();
+        System.arraycopy(sensorData, 0, seedBuffer, 8, 4);
+        seedUpdated = true;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 
     public byte[] generateRandom(int size) {
         SecureRandom random = new SecureRandom();
@@ -23,19 +56,18 @@ public class Utilities implements IUtilities {
     }
 
     public byte[] generateRawKey(byte[] seed) {
-        KeyGenerator kgen = null;
-        SecureRandom sr = null;
+        KeyGenerator keyGenerator = null;
+        SecureRandom secureRandom = null;
         try {
-            kgen = KeyGenerator.getInstance("AES");
-            sr = SecureRandom.getInstance("SHA1PRNG");
+            keyGenerator = KeyGenerator.getInstance("AES");
+            secureRandom = SecureRandom.getInstance("SHA1PRNG");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        sr.setSeed(seed);
-        kgen.init(128, sr);
-        SecretKey skey = kgen.generateKey();
-        byte[] raw = skey.getEncoded();
-        return raw;
+        secureRandom.setSeed(seed);
+        keyGenerator.init(128, secureRandom);
+        SecretKey secretKey = keyGenerator.generateKey();
+        return secretKey.getEncoded();
     }
 
     public void whiteoutBytes(byte[] data) {
@@ -43,10 +75,21 @@ public class Utilities implements IUtilities {
     }
 
     public byte[] generateSeed() {
-        return "TO_BE_REPLACED".getBytes();
+        seedUpdated = false;
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        while(!seedUpdated);
+        sensorManager.unregisterListener(this);
+        return seedBuffer;
     }
 
-    protected static byte[] toByte(String hexString) {
+    public byte[] appendBytes(byte[] firstArray, byte[] secondArray) {
+        byte[] result = new byte[firstArray.length + secondArray.length];
+        System.arraycopy(firstArray, 0, result, 0, firstArray.length);
+        System.arraycopy(secondArray, 0, result, firstArray.length, secondArray.length);
+        return result;
+    }
+
+    public byte[] toByte(String hexString) {
         int len = hexString.length() / 2;
         byte[] result = new byte[len];
         for (int i = 0; i < len; i++)
@@ -54,24 +97,17 @@ public class Utilities implements IUtilities {
         return result;
     }
 
-    protected static String toHex(byte[] buffer) {
+    public String toHex(byte[] buffer) {
         if (buffer == null)
             return "";
         StringBuilder result = new StringBuilder(2 * buffer.length);
-        for (int i = 0; i < buffer.length; i++) {
-            appendHex(result, buffer[i]);
+        for (byte value : buffer) {
+            appendHex(result, value);
         }
         return result.toString();
     }
 
     private static void appendHex(StringBuilder buf, byte ch) {
         buf.append(HEX.charAt((ch >> 4) & 0x0f)).append(HEX.charAt(ch & 0x0f));
-    }
-
-    protected byte[] appendBytes(byte[] firstArray, byte[] secondArray) {
-        byte[] result = new byte[firstArray.length + secondArray.length];
-        System.arraycopy(firstArray, 0, result, 0, firstArray.length);
-        System.arraycopy(secondArray, 0, result, firstArray.length, secondArray.length);
-        return result;
     }
 }

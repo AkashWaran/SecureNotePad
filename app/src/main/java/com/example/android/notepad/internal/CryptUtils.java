@@ -1,5 +1,7 @@
 package com.example.android.notepad.internal;
 
+import android.content.Context;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,35 +24,39 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * Created by Akash on 9/9/2014.
  */
-public class CryptUtils extends Utilities implements ICryptUtils {
+public class CryptUtils implements ICryptUtils {
 
     private final static int HASH_SIZE = 20;
     private final static String CIPHER_TO_USE = "AES/CBC/PKCS5Padding";
     private final static int KEY_SIZE = 16;
+    private static IUtilities utilities;
+
+    public CryptUtils(Context mContext) {
+        utilities = new Utilities(mContext);
+    }
 
     public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
         if ((iv == null) || (iv.length == 0)) {
-            iv = generateRandom(KEY_SIZE);
+            iv = utilities.generateRandom(KEY_SIZE);
         }
         if ((salt == null) || (salt.length == 0)) {
-            salt = generateRandom(KEY_SIZE);
+            salt = utilities.generateRandom(KEY_SIZE);
         }
         if ((key == null) || (key.length == 0)) {
-            byte[] temp = generateSeed();
-            key = generateRawKey(temp);
-            whiteoutBytes(temp);
+            byte[] temp = utilities.generateSeed();
+            key = utilities.generateRawKey(temp);
+            utilities.whiteoutBytes(temp);
         }
-
         byte[] result = encrypt(iv, key, (String.format("%08d", id) + data).getBytes());
-        return appendBytes(generateHash(result, salt), result);
+        return utilities.appendBytes(generateHash(result, salt), result);
     }
 
     public String stringDecrypt(byte[] iv, byte[] key, byte[] salt, int id, byte[] data) {
+        byte[] hash = new byte[HASH_SIZE];
+        byte[] text = new byte[data.length - HASH_SIZE];
         if (data.length <= HASH_SIZE) {
             return null;
         }
-        byte[] hash = new byte[HASH_SIZE];
-        byte[] text = new byte[data.length - HASH_SIZE];
         System.arraycopy(data, 0, hash, 0, HASH_SIZE);
         System.arraycopy(data, HASH_SIZE, text, 0, text.length);
         if (Arrays.equals(hash, generateHash(text, salt))) {
@@ -59,7 +65,9 @@ public class CryptUtils extends Utilities implements ICryptUtils {
                 return result.substring(8);
             }
             System.out.println("ERROR : Unique ID of file does not match given id");
+            return null;
         }
+        System.out.println("ERROR : Hash mismatch");
         return null;
     }
 
@@ -102,30 +110,8 @@ public class CryptUtils extends Utilities implements ICryptUtils {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        byte[] body = appendBytes(text, salt);
+        byte[] body = utilities.appendBytes(text, salt);
         md.update(body);
-        return md.digest();
-    }
-
-    private static byte[] generateHash(String text, byte[] salt) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        md.update((text + salt.toString()).getBytes());
-        return md.digest();
-    }
-
-    private static byte[] secureHash(byte[] data) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        md.update(data);
         return md.digest();
     }
 

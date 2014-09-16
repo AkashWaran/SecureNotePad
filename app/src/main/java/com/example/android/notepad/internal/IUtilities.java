@@ -50,4 +50,10 @@ public interface IUtilities {
      * @return A random byte array generated using hardware components
      */
     public byte[] generateSeed();
+
+    public byte[] appendBytes(byte[] firstArray, byte[] secondArray);
+
+    public byte[] toByte(String hexString);
+
+    public String toHex(byte[] buffer);
 }
