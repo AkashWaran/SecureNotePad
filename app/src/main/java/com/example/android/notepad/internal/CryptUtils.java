@@ -40,14 +40,14 @@ public class CryptUtils implements ICryptUtils {
 
     public byte[] stringEncrypt(byte[] iv, byte[] key, byte[] salt, int id, String data) {
         if ((iv == null) || (iv.length == 0)) {
-            iv = utilities.generateRandom(KEY_SIZE);
+            iv = generateRandom(KEY_SIZE);
         }
         if ((salt == null) || (salt.length == 0)) {
-            salt = utilities.generateRandom(KEY_SIZE);
+            salt = generateRandom(KEY_SIZE);
         }
         if ((key == null) || (key.length == 0)) {
             byte[] temp = utilities.generateSeed();
-            key = utilities.generateRawKey(temp);
+            key = generateRawKey(temp);
             utilities.whiteoutBytes(temp);
         }
         byte[] result = encrypt(iv, key, (String.format("%08d", id) + data).getBytes());
