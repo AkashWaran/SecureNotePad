@@ -47,6 +47,10 @@ public class Utilities implements IUtilities, SensorEventListener {
         fill(data, (byte) 0);
     }
 
+    public void whiteoutChars(char[] data) {
+        fill(data, (char) 0);
+    }
+
     public byte[] generateSeed() {
         seedUpdated = false;
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
