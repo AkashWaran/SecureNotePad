@@ -55,7 +55,7 @@ import java.util.HashMap;
 public class NotePadProvider extends ContentProvider implements PipeDataWriter<Cursor> {
 
     // Used to encrypt/decrypt data
-    private static final CryptUtils crypto = new CryptUtils();
+    private static CryptUtils crypto;
 
 
     private static byte[] iv = new byte[16];
@@ -103,7 +103,7 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
     };
     private static final int READ_NOTE_NOTE_INDEX = 1;
     private static final int READ_NOTE_TITLE_INDEX = 2;
-
+    private static Context mContext;
     /*
      * Constants used by the Uri matcher to choose an action based on the pattern
      * of the incoming URI
@@ -210,6 +210,7 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
 
             // calls the super constructor, requesting the default cursor factory.
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
+            mContext = context;
         }
 
         /**
@@ -227,6 +228,8 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
                     + NotePad.Notes.KEY_KEY + " BLOB,"
                     + NotePad.Notes.KEY_IV + " BLOB," +
                     NotePad.Notes.KEY_SALT + " BLOB )");
+            crypto = new CryptUtils(mContext);
+
         }
 
         /**
@@ -542,6 +545,9 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
             // Otherwise, create a new value map
             values = new ContentValues();
         }
+        if (crypto == null) {
+            crypto = new CryptUtils(getContext());
+        }
 
         // Gets the current system time in milliseconds
         Long now = Long.valueOf(System.currentTimeMillis());
@@ -703,6 +709,11 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
      */
     @Override
     public int update(Uri uri, ContentValues values, String where, String[] whereArgs) {
+
+
+        if (crypto == null) {
+            crypto = new CryptUtils(getContext());
+        }
 
         // Opens the database object in "write" mode.
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();

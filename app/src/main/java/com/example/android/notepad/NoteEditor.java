@@ -382,7 +382,6 @@ public class NoteEditor extends Activity {
             String text = mText.getText().toString();
             int length = text.length();
 
-
             /*
              * If the Activity is in the midst of finishing and there is no text in the current
              * note, returns a result of CANCELED to the caller, and deletes the note. This is done
@@ -403,7 +402,7 @@ public class NoteEditor extends Activity {
                 // Creates a map to contain the new values for the columns
                 updateNote(text, null);
             } else if (mState == STATE_INSERT) {
-            //   updateNote(text,text);
+             //  updateNote(text, text);
                 mState = STATE_EDIT;
             }
         }

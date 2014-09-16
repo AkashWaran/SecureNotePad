@@ -61,8 +61,15 @@ public class NotesList extends ListActivity {
 
     private static byte[] salt = new byte[16];
 
-    private static final ICryptUtils crypto = new CryptUtils();
+    // The names of the cursor columns to display in the view, initialized to the title column
+    private static final String[] dataColumns = {NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes._ID};
 
+    // The view IDs that will display the cursor columns, initialized to the TextView in
+    // noteslist_item.xml
+    private static final int[] viewIDs = {android.R.id.text1};
+
+    private static ICryptUtils crypto;
+    private static Cursor cursor;
     // For logging and debugging
     private static final String TAG = "NotesList";
 
@@ -81,6 +88,7 @@ public class NotesList extends ListActivity {
      * The index of the title column
      */
     private static final int COLUMN_INDEX_TITLE = 1;
+    private static SimpleCursorAdapter adapter;
 
     /**
      * onCreate is called when Android starts this Activity from scratch.
@@ -98,7 +106,7 @@ public class NotesList extends ListActivity {
          */
         // Gets the intent that started this Activity.
         Intent intent = getIntent();
-
+        crypto = new CryptUtils(getApplicationContext());
         // If there is no data associated with the Intent, sets the data to the default URI, which
         // accesses a list of notes.
         if (intent.getData() == null) {
@@ -117,7 +125,7 @@ public class NotesList extends ListActivity {
          *
          * Please see the introductory note about performing provider operations on the UI thread.
          */
-        Cursor cursor = managedQuery(
+        cursor = managedQuery(
                 getIntent().getData(),            // Use the default content URI for the provider.
                 PROJECTION,                       // Return the note ID and title for each note.
                 null,                             // No where clause, return all records.
@@ -137,12 +145,7 @@ public class NotesList extends ListActivity {
          * value will appear in the ListView.
          */
 
-        // The names of the cursor columns to display in the view, initialized to the title column
-        String[] dataColumns = {NotePad.Notes.COLUMN_NAME_TITLE, NotePad.Notes._ID};
 
-        // The view IDs that will display the cursor columns, initialized to the TextView in
-        // noteslist_item.xml
-        int[] viewIDs = {android.R.id.text1};
         cursor.moveToFirst();
         MatrixCursor matrixCur = new MatrixCursor(dataColumns);
         String noteTitle;
@@ -156,11 +159,10 @@ public class NotesList extends ListActivity {
             salt = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_SALT));
             noteTitle = crypto.stringDecrypt(iv, key, salt, columnId, blobObject);
             matrixCur.addRow(new Object[]{new String(noteTitle), columnId});
-
             cursor.moveToNext();
         }
         // Creates the backing adapter for the ListView.
-        SimpleCursorAdapter adapter
+        adapter
                 = new SimpleCursorAdapter(
                 this,                             // The Context for the ListView
                 R.layout.noteslist_item,          // Points to the XML for a list item
@@ -518,5 +520,40 @@ public class NotesList extends ListActivity {
             // Intent's data is the note ID URI. The effect is to call NoteEdit.
             startActivity(new Intent(Intent.ACTION_EDIT, uri));
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        cursor.requery();
+        cursor.moveToFirst();
+        MatrixCursor matrixCur = new MatrixCursor(dataColumns);
+        String noteTitle;
+
+        for (int i = 0; i < cursor.getCount(); i++) {
+
+            int columnId = cursor.getInt(cursor.getColumnIndex(NotePad.Notes._ID));
+            byte[] blobObject = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.COLUMN_NAME_TITLE));
+            iv = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_IV));
+            key = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_KEY));
+            salt = cursor.getBlob(cursor.getColumnIndex(NotePad.Notes.KEY_SALT));
+            noteTitle = crypto.stringDecrypt(iv, key, salt, columnId, blobObject);
+            matrixCur.addRow(new Object[]{new String(noteTitle), columnId});
+            cursor.moveToNext();
+        }
+        // Creates the backing adapter for the ListView.
+        adapter
+                = new SimpleCursorAdapter(
+                this,                             // The Context for the ListView
+                R.layout.noteslist_item,          // Points to the XML for a list item
+                matrixCur,                           // The cursor to get items from
+                dataColumns,
+                viewIDs
+        );
+        adapter.notifyDataSetChanged();
+        setListAdapter(adapter);
+
+
     }
 }

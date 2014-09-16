@@ -7,34 +7,6 @@ public interface IUtilities {
 
     /**
      *
-     * This method can be used to generate a random byte array.
-     * This is useful for generating salt or initializing vectors.
-     *
-     * Note : This method makes use of secure random
-     *
-     * @param size - The number of bytes of data you want to randomly generate
-     *
-     * @return Random byte array
-     */
-    public byte[] generateRandom(int size);
-
-    /**
-     *
-     * This method is used to generate the key used for encryption.
-     * Due to the nature of key we need this to be truely random and it is
-     * thus generated using a seed provided by the user.
-     * This is done to ensure randomness by using a turely random seed.
-     *
-     * Note : This function is used where the randomness of the result is of utmost importance
-     *
-     * @param seed - Random seed which we use to generate a random key.
-     *
-     * @return Random byte array
-     */
-    public byte[] generateRawKey(byte[] seed);
-
-    /**
-     *
      * This method is used in order to delete sensitive data once used.
      * We replace all data in the array with 0 so that after garbage collection
      * we do not have sensitive data stored in memory which can be exploited.
@@ -50,4 +22,35 @@ public interface IUtilities {
      * @return A random byte array generated using hardware components
      */
     public byte[] generateSeed();
+
+    /**
+     *
+     * This method concatinates one byte array onto another
+     *
+     * @param firstArray    - The byte array which makes up the start of the concatination
+     * @param secondArray   - The byte array which makes up the end of the concatination
+     *
+     * @return The concatinated byte array
+     */
+    public byte[] appendBytes(byte[] firstArray, byte[] secondArray);
+
+    /**
+     *
+     * This method is used to convert a hexadecimal string into a byte array
+     *
+     * @param hexString - Hexadecimal string
+     *
+     * @return byte array representation of given hex string
+     */
+    public byte[] toByte(String hexString);
+
+    /**
+     *
+     * This method returns a hexadecimal string of byte array
+     *
+     * @param buffer - This is the input byte array
+     *
+     * @return hexadecimal notation of the above array as a string
+     */
+    public String toHex(byte[] buffer);
 }
