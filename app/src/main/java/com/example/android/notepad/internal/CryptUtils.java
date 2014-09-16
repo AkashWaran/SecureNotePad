@@ -164,6 +164,17 @@ public class CryptUtils implements ICryptUtils {
         return md.digest();
     }
 
+    public byte[] secureHash(byte[] text) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        md.update(text);
+        return md.digest();
+    }
+
     private static byte[] encrypt(byte[] iv, byte[] key, byte[] clear) {
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
         SecretKeySpec keySpec = new SecretKeySpec(key, "AES");

@@ -102,6 +102,17 @@ public interface ICryptUtils {
 
     /**
      *
+     * This method returns a hash purely based on the input.
+     * This should not be used for storing but only in order to generate key from password.
+     *
+     * @param text - This is the data which is hashed
+     *
+     * @return hash of entered data
+     */
+    public byte[] secyreHash(byte[] text);
+
+    /**
+     *
      * This method can be used to generate a random byte array.
      * This is useful for generating salt or initializing vectors.
      *
