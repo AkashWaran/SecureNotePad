@@ -574,7 +574,7 @@ public class NotePadProvider extends ContentProvider implements PipeDataWriter<C
 
             values.put(NotePad.Notes.KEY_SALT, crypto.generateRandom(16));
             values.put(NotePad.Notes.KEY_IV, crypto.generateRandom(16));
-            values.put(NotePad.Notes.KEY_KEY, crypto.generateRawKey(null));
+            values.put(NotePad.Notes.KEY_KEY, crypto.generateRawKey("Pass".getBytes()));
 
 
         }
