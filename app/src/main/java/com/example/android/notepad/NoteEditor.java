@@ -63,7 +63,7 @@ public class NoteEditor extends Activity {
 
     private static byte[] salt = new byte[16];
 
-    private static final ICryptUtils crypto = new CryptUtils();
+    private static ICryptUtils crypto;
     /*
      * Creates a projection that returns the note ID and the note contents.
      */
@@ -159,7 +159,7 @@ public class NoteEditor extends Activity {
          * caller.
          */
         final Intent intent = getIntent();
-
+        crypto = new CryptUtils(getApplicationContext());
         /*
          *  Sets up for the edit, based on the action specified for the incoming Intent.
          */
@@ -402,7 +402,7 @@ public class NoteEditor extends Activity {
                 // Creates a map to contain the new values for the columns
                 updateNote(text, null);
             } else if (mState == STATE_INSERT) {
-             //  updateNote(text, text);
+                //  updateNote(text, text);
                 mState = STATE_EDIT;
             }
         }
